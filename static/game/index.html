@@ -1,0 +1,83 @@
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	
+	<title>叠脑斧</title>
+
+	<!-- components -->
+	<script src="src/components/UserComponent.js"></script>
+	<script src="src/components/Physics.js"></script>
+	<script src="src/components/PhysicsBody.js"></script>
+	<script src="src/components/FixedToCamera.js"></script>
+
+	<script>
+		window.exports = {};
+	</script>
+	<script src="js/google-protobuf.js"></script>
+	<script src="js/base_protobuf.js"></script>
+	<script src="js/protobuf.js?ver=1"></script>
+
+	<script src="js/encoding-indexes.js"></script>
+	<script src="js/encoding.js"></script>
+	<script src="js/common.js"></script>
+	<script src="js/protocol.js"></script>
+
+	<script src="lib/phaser.min.js"></script>
+	<script src="src/components/PushOnClick.js"></script>
+	<script src="src/components/PreloadText.js"></script>
+	<script src="src/scenes/Preload.js"></script>
+	<script src="src/scenes/Level.js"></script>
+	<script src="src/main.js"></script>
+
+	<link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+	<script src="/static/layui/layui.js"></script>
+	<style>
+		body {
+			background: #2f2f2f;
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+
+</head>
+
+<body>
+
+<script>
+	let layer;
+	layui.use(['layer'], function(){
+		layer = layui.layer;
+		enterName();
+	});
+
+
+	function openRank() {
+		layer.open({
+			type: 2,
+			area: ["300","400"],
+			resize:false,
+			title:"排名",
+			content: '/static/ui/rank.html'
+		})
+	}
+
+	function enterName(){
+		if (!window.localStorage["username"] || window.localStorage["username"]==""){
+			layer.prompt({
+				formType: 2,
+				value: '新玩家',
+				title: '输入名称',
+				area: ['50px', '100px']
+			}, function(value, index, elem){
+				window.localStorage["username"] = value;
+				layer.close(index);
+			});
+		}
+	}
+</script>
+</body>
+
+</html>
