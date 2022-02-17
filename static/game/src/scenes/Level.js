@@ -131,6 +131,8 @@ class Level extends Phaser.Scene {
             },
 			items: []
 		}).layout();
+
+		new FixedToCamera(this.gridTable);
 		this.createRankItems();
 	}
 
