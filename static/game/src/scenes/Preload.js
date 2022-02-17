@@ -50,7 +50,9 @@ class Preload extends Phaser.Scene {
 		
 		this.load.on(Phaser.Loader.Events.COMPLETE, () =>{
 			var name= prompt("请输入名称","新玩家");
-			window.localStorage["username"] = name;
+			if(name && name!=""){
+				window.localStorage["username"] = name;
+			}
 			this.scene.start("Level");
 		});
 	}
