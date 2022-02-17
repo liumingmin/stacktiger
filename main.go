@@ -27,6 +27,10 @@ func main() {
 	e.GET("/join", JoinGame)
 	e.GET("/rank", GameRank)
 
+	e.GET("/", func(ctx *gin.Context) {
+		ctx.Redirect(http.StatusFound, "/static/game")
+	})
+
 	ginpprof.WrapGroup(&e.RouterGroup)
 
 	e.Run(":8004")

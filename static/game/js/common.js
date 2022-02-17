@@ -25,5 +25,5 @@ function uuid() {
 }
 
 
-var hostAddress = "10.11.244.87"
+var hostAddress = "10.11.244.87:8004"
 

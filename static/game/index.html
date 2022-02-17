@@ -19,6 +19,7 @@
 	<script src="js/google-protobuf.js"></script>
 	<script src="js/base_protobuf.js"></script>
 	<script src="js/protobuf.js?ver=1"></script>
+	<script src="js/jquery.min.js"></script>
 
 	<script src="js/encoding-indexes.js"></script>
 	<script src="js/encoding.js"></script>
@@ -32,8 +33,6 @@
 	<script src="src/scenes/Level.js"></script>
 	<script src="src/main.js"></script>
 
-	<link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
-	<script src="/static/layui/layui.js"></script>
 	<style>
 		body {
 			background: #2f2f2f;
@@ -46,38 +45,6 @@
 
 <body>
 
-<script>
-	let layer;
-	layui.use(['layer'], function(){
-		layer = layui.layer;
-		enterName();
-	});
-
-
-	function openRank() {
-		layer.open({
-			type: 2,
-			area: ["300","400"],
-			resize:false,
-			title:"排名",
-			content: '/static/ui/rank.html'
-		})
-	}
-
-	function enterName(){
-		if (!window.localStorage["username"] || window.localStorage["username"]==""){
-			layer.prompt({
-				formType: 2,
-				value: '新玩家',
-				title: '输入名称',
-				area: ['50px', '100px']
-			}, function(value, index, elem){
-				window.localStorage["username"] = value;
-				layer.close(index);
-			});
-		}
-	}
-</script>
 </body>
 
 </html>

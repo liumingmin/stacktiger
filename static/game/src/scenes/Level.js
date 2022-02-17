@@ -53,6 +53,142 @@ class Level extends Phaser.Scene {
 	/* START-USER-CODE */
 
 	// Write more your code here
+
+	preload() { 
+        this.load.scenePlugin({
+            key: 'rexuiplugin',
+            url: '/static/game/src/plugins/rexuiplugin.min.js',
+            sceneKey: 'rexUI'
+        });
+    }
+
+	openRank() {
+		const COLOR_PRIMARY = 0x4e342e;
+		const COLOR_LIGHT = 0x7b5e57;
+		const COLOR_DARK = 0x260e04;
+
+        var scrollMode = 0; // 0:vertical, 1:horizontal
+        this.gridTable = this.rexUI.add.gridTable({
+			x: 400,
+            y: 300,
+            width: 300,
+            height: 420,
+
+            scrollMode: 0,
+
+            background: this.rexUI.add.roundRectangle(0, 0, 20, 10, 10, COLOR_PRIMARY),
+
+            table: {
+                cellWidth: undefined,
+                cellHeight: 30,
+
+                columns: 1,
+
+                mask: {
+                    padding: 2,
+                },
+
+                reuseCellContainer: true,
+            },
+
+            header: this.createRowItem(this,
+                {
+                    background: this.rexUI.add.roundRectangle(0, 0, 20, 20, 0, COLOR_DARK),
+                    id: this.add.text(0, 0, '玩家'),
+                    score: this.add.text(0, 0, '分数'),
+                    height: 30
+                }
+            ),
+
+            space: {
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 20,
+
+                table: 10,
+                header: 10,
+                footer: 10,
+            },
+			createCellContainerCallback:  (cell, cellContainer) =>{
+                var scene = cell.scene,
+                    width = cell.width,
+                    height = cell.height,
+                    item = cell.item,
+                    index = cell.index;
+                if (cellContainer === null) {
+                    cellContainer = this.createRowItem(scene);
+                    //console.log(cell.index + ': create new cell-container');
+                } else {
+                   // console.log(cell.index + ': reuse cell-container');
+                }
+
+                // Set properties from item value
+                cellContainer.setMinSize(width, height); // Size might changed in this demo
+                cellContainer.getElement('id').setText(item.uid);
+                cellContainer.getElement('score').setText(item.score);
+                return cellContainer;
+            },
+			items: []
+		}).layout();
+		this.createRankItems();
+	}
+
+	createRowItem (scene, config) {
+		const COLOR_DARK = 0x260e04;
+		
+		const GetValue = Phaser.Utils.Objects.GetValue;
+		var background = GetValue(config, 'background', undefined);
+		if (background === undefined) {
+			background = scene.rexUI.add.roundRectangle(0, 0, 20, 20, 0).setStrokeStyle(2, COLOR_DARK)
+		}
+		var id = GetValue(config, 'id', undefined);
+		if (id === undefined) {
+			id = scene.add.text(0, 0, id);
+		}
+		var score = GetValue(config, 'score', undefined);
+		if (score === undefined) {
+			score = scene.add.text(0, 0, score);
+		}
+		return scene.rexUI.add.sizer({
+			width: GetValue(config, 'width', undefined),
+			height: GetValue(config, 'height', undefined),
+			orientation: 'x',
+		})
+			.addBackground(
+				background
+			)
+			.add(
+				id,    // child
+				0,                           // proportion, fixed width
+				'center',                    // align vertically
+				{ left: 10 },                // padding
+				false,                       // expand vertically
+				'id'                         // map-key
+			)
+			.addSpace()
+			.add(
+				score, // child
+				0,                           // proportion, fixed width
+				'center',                    // align vertically
+				{ right: 10 },               // padding
+				false,                       // expand vertically
+				'score'                      // map-key
+			)
+	}
+
+	createRankItems(){
+		const url = "http://"+hostAddress+"/rank";
+
+		$.get(url, {}, (result)=> {
+			if (result.code == 0 && result.data) {
+				this.gridTable.setItems(result.data);
+			}
+		});
+	}
+
+	gridTable;
+
 	tiger;
 	tigers;
 	success;
@@ -64,6 +200,7 @@ class Level extends Phaser.Scene {
 
 		this.initEnv();
 		this.initWs();
+		//this.openRank();
 	}
 
 
@@ -76,7 +213,7 @@ class Level extends Phaser.Scene {
 		this.ws = null;
 		this.connected = false;
 
-		this.ws = new WebSocket("ws://"+hostAddress+":8004/join?uid="+window.localStorage["username"]);
+		this.ws = new WebSocket("ws://"+hostAddress+"/join?uid="+window.localStorage["username"]);
 
 		this.ws.onopen =  () =>{
 			this.ws.binaryType = 'arraybuffer'; 
@@ -110,7 +247,7 @@ class Level extends Phaser.Scene {
 					this.success = stackStatus.getStatus();
 
 					if(this.success==0){
-						openRank();
+						this.openRank();
 					}
 					this.dropTiger();
 			}
