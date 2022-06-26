@@ -11,7 +11,6 @@ import (
 
 	"github.com/DeanThompson/ginpprof"
 	"github.com/gin-gonic/gin"
-	"github.com/golang/protobuf/proto"
 	"github.com/liumingmin/goutils/log"
 	"github.com/liumingmin/goutils/utils/safego"
 	"github.com/liumingmin/goutils/ws"
@@ -22,6 +21,8 @@ import (
 var tigerRank sync.Map
 
 func main() {
+	ws.InitServer()
+
 	e := gin.Default()
 	e.Static("/static", "./static")
 	e.GET("/join", JoinGame)
@@ -75,7 +76,7 @@ type tigerScale struct {
 }
 
 func (c *ConnectCb) ConnFinished(clientId string) {
-	connection, err := ws.Clients.Find(clientId)
+	connection, err := ws.ClientConnHub.Find(clientId)
 	if err != nil {
 		log.Error(context.Background(), "ConnFinished failed: %v", err)
 		return
@@ -102,11 +103,11 @@ func (c *ConnectCb) ConnFinished(clientId string) {
 			select {
 			case <-ticker.C:
 				scale := math.Abs(math.Sin(float64(mts()-params.LastMts)/600))*2.8 + 0.2
-				data := &packet.SCALING{Scale: float32(scale)}
-				packet := ws.GetPMessage()
-				packet.ProtocolId = constant.WS_S2C_SCALING
-				packet.Data, _ = proto.Marshal(data)
-				connection.SendMsg(context.Background(), packet, nil)
+
+				message := ws.GetPoolMessage(constant.WS_S2C_SCALING)
+				dataMsg := message.DataMsg().(*packet.SCALING)
+				dataMsg.Scale = float32(scale)
+				connection.SendMsg(context.Background(), message, nil)
 
 				params.CurrScale = int(scale * 10)
 			case <-doneCh:
@@ -142,7 +143,7 @@ func randInt() int {
 }
 
 func (c *ConnectCb) DisconnFinished(clientId string) {
-	connection, err := ws.Clients.Find(clientId)
+	connection, err := ws.ClientConnHub.Find(clientId)
 	if err != nil {
 		log.Error(context.Background(), "ConnFinished failed: %v", err)
 		return
@@ -159,7 +160,7 @@ func (c *ConnectCb) DisconnFinished(clientId string) {
 	}
 }
 
-func DropTiger(ctx context.Context, connection *ws.Connection, msg *ws.P_MESSAGE) error {
+func DropTiger(ctx context.Context, connection *ws.Connection, msg *ws.Message) error {
 	log.Info(ctx, "recv drop msg")
 
 	obj, ok := connection.GetCommDataValue(constant.CONN_PARAMS)
@@ -176,7 +177,7 @@ func DropTiger(ctx context.Context, connection *ws.Connection, msg *ws.P_MESSAGE
 	return nil
 }
 
-func ResumeTiger(ctx context.Context, connection *ws.Connection, msg *ws.P_MESSAGE) error {
+func ResumeTiger(ctx context.Context, connection *ws.Connection, msg *ws.Message) error {
 	log.Info(ctx, "recv resume msg")
 
 	obj, ok := connection.GetCommDataValue(constant.CONN_PARAMS)
@@ -215,11 +216,11 @@ func dropTiger(connection *ws.Connection) {
 		tigerRank.Store(connection.UserId(), len(scale.StackScales))
 	}
 
-	data := &packet.STACK_STATUS{Status: success, Count: int32(len(scale.StackScales))}
-	packet := ws.GetPMessage()
-	packet.ProtocolId = constant.WS_S2C_DROP_TIGER
-	packet.Data, _ = proto.Marshal(data)
-	connection.SendMsg(context.Background(), packet, nil)
+	message := ws.GetPoolMessage(constant.WS_S2C_DROP_TIGER)
+	dataMsg := message.DataMsg().(*packet.STACK_STATUS)
+	dataMsg.Status = success
+	dataMsg.Count = int32(len(scale.StackScales))
+	connection.SendMsg(context.Background(), message, nil)
 }
 
 type PlayerScore struct {
@@ -245,4 +246,7 @@ func GameRank(ctx *gin.Context) {
 func init() {
 	ws.RegisterHandler(constant.WS_C2S_DROP, DropTiger)
 	ws.RegisterHandler(constant.WS_C2S_RESUME, ResumeTiger)
+
+	ws.RegisterDataMsgType(constant.WS_S2C_SCALING, &packet.SCALING{})
+	ws.RegisterDataMsgType(constant.WS_S2C_DROP_TIGER, &packet.STACK_STATUS{})
 }
