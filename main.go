@@ -52,15 +52,14 @@ func JoinGame(ctx *gin.Context) {
 		Charset:  0,
 	}
 
-	_, err := ws.AcceptGin(ctx, connMeta, ws.ConnectCbOption(&ConnectCb{connMeta.UserId}))
+	_, err := ws.AcceptGin(ctx, connMeta,
+		ws.ConnEstablishHandlerOption(ConnFinished),
+		ws.ConnClosedHandlerOption(DisconnFinished),
+	)
 	if err != nil {
 		log.Error(ctx, "Accept client connection failed. error: %v", err)
 		return
 	}
-}
-
-type ConnectCb struct {
-	Uid string
 }
 
 type tigerScale struct {
@@ -75,13 +74,7 @@ type tigerScale struct {
 	StackScales []int
 }
 
-func (c *ConnectCb) ConnFinished(clientId string) {
-	connection, err := ws.ClientConnHub.Find(clientId)
-	if err != nil {
-		log.Error(context.Background(), "ConnFinished failed: %v", err)
-		return
-	}
-
+func ConnFinished(connection *ws.Connection) {
 	doneCh := make(chan struct{}, 1)
 	pauseCh := make(chan struct{}, 1)
 	resumeCh := make(chan struct{}, 1)
@@ -142,12 +135,7 @@ func randInt() int {
 	return randN
 }
 
-func (c *ConnectCb) DisconnFinished(clientId string) {
-	connection, err := ws.ClientConnHub.Find(clientId)
-	if err != nil {
-		log.Error(context.Background(), "ConnFinished failed: %v", err)
-		return
-	}
+func DisconnFinished(connection *ws.Connection) {
 	obj, ok := connection.GetCommDataValue(constant.CONN_PARAMS)
 	if !ok {
 		return
