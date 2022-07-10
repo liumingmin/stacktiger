@@ -5,6 +5,14 @@
 ```
 protoc --go_out=. packet/model.proto
 protoc --js_out=library=protobuf,binary:static/js  packet/model.proto
+
+//commonjs
+npm i  google-protobuf
+npm i minifier
+protoc --js_out=import_style=commonjs,binary:.  packet/model.proto
+cd packet
+browserify msg_pb.js model_pb.js -o  pb_dist.js
+minify pb_dist.js
 ```
 
 
