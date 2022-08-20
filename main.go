@@ -74,7 +74,7 @@ type tigerScale struct {
 	StackScales []int
 }
 
-func ConnFinished(connection *ws.Connection) {
+func ConnFinished(ctx context.Context, connection *ws.Connection) {
 	doneCh := make(chan struct{}, 1)
 	pauseCh := make(chan struct{}, 1)
 	resumeCh := make(chan struct{}, 1)
@@ -135,7 +135,7 @@ func randInt() int {
 	return randN
 }
 
-func DisconnFinished(connection *ws.Connection) {
+func DisconnFinished(ctx context.Context, connection *ws.Connection) {
 	obj, ok := connection.GetCommDataValue(constant.CONN_PARAMS)
 	if !ok {
 		return
