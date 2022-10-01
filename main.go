@@ -74,7 +74,7 @@ type tigerScale struct {
 	StackScales []int
 }
 
-func ConnFinished(ctx context.Context, connection *ws.Connection) {
+func ConnFinished(ctx context.Context, connection ws.IConnection) {
 	doneCh := make(chan struct{}, 1)
 	pauseCh := make(chan struct{}, 1)
 	resumeCh := make(chan struct{}, 1)
@@ -135,7 +135,7 @@ func randInt() int {
 	return randN
 }
 
-func DisconnFinished(ctx context.Context, connection *ws.Connection) {
+func DisconnFinished(ctx context.Context, connection ws.IConnection) {
 	obj, ok := connection.GetCommDataValue(constant.CONN_PARAMS)
 	if !ok {
 		return
@@ -148,7 +148,7 @@ func DisconnFinished(ctx context.Context, connection *ws.Connection) {
 	}
 }
 
-func DropTiger(ctx context.Context, connection *ws.Connection, msg *ws.Message) error {
+func DropTiger(ctx context.Context, connection ws.IConnection, msg ws.IMessage) error {
 	log.Info(ctx, "recv drop msg")
 
 	obj, ok := connection.GetCommDataValue(constant.CONN_PARAMS)
@@ -165,7 +165,7 @@ func DropTiger(ctx context.Context, connection *ws.Connection, msg *ws.Message) 
 	return nil
 }
 
-func ResumeTiger(ctx context.Context, connection *ws.Connection, msg *ws.Message) error {
+func ResumeTiger(ctx context.Context, connection ws.IConnection, msg ws.IMessage) error {
 	log.Info(ctx, "recv resume msg")
 
 	obj, ok := connection.GetCommDataValue(constant.CONN_PARAMS)
@@ -182,7 +182,7 @@ func ResumeTiger(ctx context.Context, connection *ws.Connection, msg *ws.Message
 	return nil
 }
 
-func dropTiger(connection *ws.Connection) {
+func dropTiger(connection ws.IConnection) {
 	obj, ok := connection.GetCommDataValue(constant.CONN_PARAMS)
 	if !ok {
 		return

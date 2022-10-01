@@ -33,10 +33,7 @@ class PushOnClick extends UserComponent {
 	}
 
 	sendDrop(){
-		let wsMessage = new proto.ws.P_MESSAGE;
-		wsMessage.setProtocolId(WS_C2S_DROP);
-		let wsBin = wsMessage.serializeBinary();
-		this.scene.ws.send(wsBin);
+		this.scene.ws.sendMsg(WS_C2S_DROP,"");
 
 		// this.scene.add.tween({
 		// 	targets: this.gameObject,

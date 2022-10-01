@@ -212,52 +212,31 @@ class Level extends Phaser.Scene {
 	}
 
 	initWs(){
-		this.ws = null;
-		this.connected = false;
+		this.ws = new WsConnection();
+        this.ws.registerMsgHandler(WS_S2C_SCALING, (ws, data) => {
+            let scaling = proto.packet.SCALING.deserializeBinary(data);
+            //console.log(scaling.getScale());
 
-		this.ws = new WebSocket("ws://"+hostAddress+"/join?uid="+window.localStorage["username"]);
+            this.tiger.scene.add.tween({
+                targets: [this.tiger],
+                scaleX: scaling.getScale(),
+                yoyo: false,
+                duration: 250,
+                ease: 'Linear' //'Sine.easeInOut'
+            });
+        });
 
-		this.ws.onopen =  () =>{
-			this.ws.binaryType = 'arraybuffer'; 
-			console.log('Client has connected to the server!');
-			this.connected = true;
-		};
-		this.ws.onerror =(error) =>{
-			console.log(error);
-		};
+        this.ws.registerMsgHandler(WS_S2C_DROP_TIGER, (ws, data) => {
+            let stackStatus = proto.packet.STACK_STATUS.deserializeBinary(data);
+            this.score.text =  stackStatus.getCount()+"";
+            this.success = stackStatus.getStatus();
 
-
-		this.ws.onmessage =(e) =>{
-			let wsMessage = proto.ws.P_MESSAGE.deserializeBinary(e.data);
-
-			switch (wsMessage.getProtocolId()) {
-				case WS_S2C_SCALING:
-					let scaling = proto.packet.SCALING.deserializeBinary(wsMessage.getData());
-					//console.log(scaling.getScale());
-
-					this.tiger.scene.add.tween({
-						targets: [this.tiger],
-						scaleX: scaling.getScale(),
-						yoyo: false,
-						duration: 250,
-						ease: 'Linear' //'Sine.easeInOut'
-					})
-					break;
-				case WS_S2C_DROP_TIGER:
-					let stackStatus = proto.packet.STACK_STATUS.deserializeBinary(wsMessage.getData());
-					this.score.text =  stackStatus.getCount()+"";
-					this.success = stackStatus.getStatus();
-
-					if(this.success==0){
-						this.openRank();
-					}
-					this.dropTiger();
-			}
-		};
-		this.ws.onclose = (e) =>{
-			console.log('The client has disconnected!');
-			this.connected = false;
-		};
+            if(this.success==0){
+                this.openRank();
+            }
+            this.dropTiger();
+        });
+        this.ws.connect("ws://"+hostAddress+"/join?uid="+window.localStorage["username"]);
 	}
 
 	updateCam() {
@@ -268,10 +247,7 @@ class Level extends Phaser.Scene {
 	}
 
 	resumeScale(){
-		let wsMessage = new proto.ws.P_MESSAGE;
-		wsMessage.setProtocolId(WS_C2S_RESUME);
-		let wsBin = wsMessage.serializeBinary();
-		this.ws.send(wsBin);
+		this.ws.sendMsg(WS_C2S_RESUME,"");
 	}
 
 	createTiger(){
