@@ -8,6 +8,7 @@ protoc --js_out=library=protobuf,binary:static/js  packet/model.proto
 
 //commonjs
 npm i  google-protobuf
+npm i  browserify
 npm i minifier
 protoc --js_out=import_style=commonjs,binary:.  packet/model.proto
 cd packet
